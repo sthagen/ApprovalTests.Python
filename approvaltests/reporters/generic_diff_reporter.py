@@ -4,6 +4,7 @@ import subprocess
 
 from approvaltests.command import Command
 from approvaltests.core.reporter import Reporter
+from approvaltests.utils import to_json
 
 
 class GenericDiffReporter(Reporter):
@@ -26,12 +27,7 @@ class GenericDiffReporter(Reporter):
         }
         if self.extra_args:
             config.update({"arguments": self.extra_args})
-        return json.dumps(
-            config,
-            indent=4,
-            sort_keys=True,
-            separators=(',', ': ')
-        )
+        return to_json(config)
 
     @staticmethod
     def create_empty_file(file_path):
@@ -39,13 +35,13 @@ class GenericDiffReporter(Reporter):
 
     @staticmethod
     def run_command(command_array):
-        subprocess.call(command_array)
+        subprocess.Popen(command_array)
 
     def get_command(self, received, approved):
         return [self.path] + self.extra_args + [received, approved]
 
     def report(self, received_path, approved_path):
-        if not self.is_working:
+        if not self.is_working():
             return False
         if not os.path.isfile(approved_path):
             self.create_empty_file(approved_path)

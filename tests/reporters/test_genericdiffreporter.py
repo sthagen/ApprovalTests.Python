@@ -1,12 +1,16 @@
 import json
 import os
+import re
 import shutil
 import unittest
 
-from approvaltests.approvals import verify
+from approvaltests.approvals import verify, get_default_namer
+from approvaltests.command import Command
 from approvaltests.reporters.generic_diff_reporter import GenericDiffReporter
 from approvaltests.reporters.generic_diff_reporter_factory import GenericDiffReporterFactory
+import approvaltests
 from approvaltests.core.namer import Namer
+from approvaltests.utils import to_json, is_windows_os
 
 
 class GenericDiffReporterTests(unittest.TestCase):
@@ -21,7 +25,7 @@ class GenericDiffReporterTests(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_list_configured_reporters(self):
-        verify(json.dumps(self.factory.list(), sort_keys=True, indent=4, separators=(',', ': ')), self.reporter)
+        verify(to_json(self.factory.list()), self.reporter)
 
     def test_get_reporter(self):
         verify(str(self.factory.get("BeyondCompare4")), self.reporter)
@@ -40,7 +44,7 @@ class GenericDiffReporterTests(unittest.TestCase):
 
     def test_constructs_valid_diff_command(self):
         reporter = self.factory.get("BeyondCompare4")
-        namer = Namer()
+        namer = get_default_namer()
         received = namer.get_received_filename()
         approved = namer.get_approved_filename()
         command = reporter.get_command(
@@ -55,7 +59,7 @@ class GenericDiffReporterTests(unittest.TestCase):
         self.assertEqual(command, expected_command)
 
     def test_empty_approved_file_created_when_one_does_not_exist(self):
-        namer = Namer()
+        namer = get_default_namer()
         received = namer.get_received_filename()
         approved = namer.get_approved_filename()
         if os.path.isfile(approved):
@@ -64,11 +68,12 @@ class GenericDiffReporterTests(unittest.TestCase):
 
         reporter = self.factory.get("BeyondCompare4")
         reporter.run_command = lambda command_array: None
+        reporter.is_working = lambda: True
         reporter.report(received, approved)
         self.assertEqual(0, os.stat(approved).st_size)
 
     def test_approved_file_not_changed_when_one_exists_already(self):
-        namer = Namer()
+        namer = get_default_namer()
         approved_contents = "Approved"
         approved = namer.get_approved_filename()
         os.remove(approved)
@@ -84,17 +89,27 @@ class GenericDiffReporterTests(unittest.TestCase):
         self.assertEqual(actual_contents, approved_contents)
 
     def test_serialization(self):
-        n = Namer()
-        path = os.path.join(n.get_directory(), 'saved-reporters.json')
-        self.factory.save(path)
-        with open(path, 'r') as f:
-            verify(f.read(), self.reporter)
+        n = get_default_namer()
+        saved_reporters_file = os.path.join(n.get_directory(), 'saved-reporters.json')
+        self.factory.save(saved_reporters_file)
+        try:
+            with open(saved_reporters_file, 'r') as f:
+                file_contents = f.read()
+                # remove the absolute path to the python_native_reporter.py file since it is different on every machine
+                regex = re.compile(r'.*"([^"]*)python_native_reporter.py')
+                match = regex.findall(file_contents)
+                if match:
+                    file_contents = file_contents.replace(match[0], "")
+                file_contents = file_contents.replace('python.exe', 'python')
+                verify(file_contents, self.reporter)
+        finally:
+            os.remove(saved_reporters_file)
 
     def test_deserialization(self):
-        namer = Namer()
+        namer = get_default_namer()
         full_name = os.path.join(namer.get_directory(), 'custom-reporters.json')
         reporters = self.factory.load(full_name)
-        verify(json.dumps(reporters, sort_keys=True, indent=4, separators=(',', ': ')), self.reporter)
+        verify(to_json(reporters), self.reporter)
 
     def test_notworking_in_environment(self):
         reporter = GenericDiffReporter(('Custom', 'NotReal'))
@@ -106,11 +121,12 @@ class GenericDiffReporterTests(unittest.TestCase):
 
     def test_remove_reporter(self):
         self.factory.remove("meld")
-        verify(json.dumps(self.factory.list(), sort_keys=True, indent=4, separators=(',', ': ')), self.reporter)
+        verify(to_json(self.factory.list()), self.reporter)
 
     @staticmethod
     def instantiate_reporter_for_test():
-        reporter = GenericDiffReporter.create('echo')
+        program = r'C:\Windows\System32\help.exe' if is_windows_os() else 'echo'
+        reporter = GenericDiffReporter.create(program)
         reporter.run_command = lambda command_array: None
         return reporter
 
@@ -133,7 +149,8 @@ class GenericDiffReporterTests(unittest.TestCase):
             'approved_file.txt'
         )
 
-    def test_empty_approved_file_created_when_one_does_not_exist(self):
+
+    def test_empty_approved_file_created_when_one_does_not_exist_2(self):
         self.assertFileDoesNotExist(self.approved_file_path)
 
         reporter = self.instantiate_reporter_for_test()
@@ -166,3 +183,11 @@ class GenericDiffReporterTests(unittest.TestCase):
 
     def test_get_pycharm_reporter(self):
         verify(str(self.factory.get("PyCharm")), reporter=self.reporter)
+
+    def test_non_working_reporter_does_not_report(self):
+        self.assertFileDoesNotExist(self.approved_file_path)
+
+        reporter = GenericDiffReporter(('Custom', 'NotReal'))
+        success = reporter.report(self.received_file_path, self.approved_file_path)
+
+        self.assertFalse(success)
