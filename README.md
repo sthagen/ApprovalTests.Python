@@ -15,15 +15,24 @@ failure.  Sometimes, trying to find a small difference in a long string printed 
 ApprovalTests solves this problem by providing reporters which let you view the test results in one of many popular diff 
 utilities.
 
-## SETUP
+## Setup
 
-From pypi:
+From [pypi](https://pypi.org/project/approvaltests/):
 
 	pip install approvaltests
 
-## GETTING STARTED
+## Getting Started
 
-Example using pytest:
+### Overview
+
+Approvals work by comparing the test results to a golden master.  If no golden master exists you can create a snapshot 
+of the current test results and use that as the golden master.  The reporter helps you manage the golden master.  
+Whenever your current results differ from the golden master, Approvals will launch an external application for you to 
+examine the differences.  Either you will update the master because you expected the changes and they are good,
+or you will go back to your code and update or roll back your changes to get your results back in line with the 
+golden master.
+
+### Example using pytest
 
 ```python
 
@@ -40,19 +49,11 @@ Install the plugin pytest-approvaltests and use it to select a reporter:
     pip install pytest-approvaltests
     pytest --approvaltests-use-reporter='PythonNative'
 
-
-Approvals work by comparing the test results to a golden master.  If no golden master exists you can create a snapshot 
-of the current test results and use that as the golden master.  The reporter helps you manage the golden master.  
-Whenever your current results differ from the golden master, the reporter will launch an external application and then 
-change some part of the system.  Either you will update the master because you expected the changes and they are good,
-or you will go back to your code and update or roll back your changes to get your results back in line with the 
-golden master.
-
 The reporter is used both to alert you to changes in your test output, and to provide a tool to update the golden 
 master. In this snippet, we chose the 'PythonNative' reporter when we ran the tests. For more information about selecting
 reporters see [the documentation](https://github.com/approvals/ApprovalTests.Python.PytestPlugin)
 
-Example using unittest:
+### Example using unittest
 
 ```python
 import unittest
@@ -75,7 +76,13 @@ if __name__ == "__main__":
 
 
 This example is similar to the pytest version shown above, except we are selecting the reporter in the test code
- rather than at runtime. ApprovalTests.Python come with a few reporters configured, 
+ rather than at runtime.
+
+## Reporters
+
+### Selecting a Reporter
+
+ApprovalTests.Python come with a few reporters configured, 
 supporting Linux, Mac OSX, and Windows.  In the example shown above, we use the `GenericDiffReporterFactory` to find 
 and select the first diff utility that exists on our system.  Later, we pass that reporter to the verify method so that
 it can be used if the test fails.
@@ -102,6 +109,8 @@ class GettingStartedTest(unittest.TestCase):
 As long as `C:/my/favorite/diff/utility.exe` can be invoked from the command line using the format `utility.exe file1 file2` 
 then it will be compatible with GenericDiffReporter.  Otherwise you will have to derive your own reporter, which 
 we won't cover here.
+
+### JSON file for collection of reporters
 
 To wrap things up, I should note that you can completely replace the collection of reporters known to the reporter 
 factory by writing your own JSON file and loading it.
@@ -151,8 +160,7 @@ if __name__ == "__main__":
 Of course, if you have some interesting new reporters in `myreporters.json` then please consider updating the 
 `reporters.json` file that ships with Approvals and submitting a pull request.
 
-
-## SUPPORT AND DOCUMENTATION
+## Support and Documentation
 
 * [Documentation](/docs/README.md)
 
@@ -168,7 +176,7 @@ To run the self-tests, install pytest and tox, then execute
 
     python -m tox
 
-This will run the self-tests on several python versions. We would like to continue to support python 2. 
+This will run the self-tests on several python versions. We support python 3.6 and above. 
 
-All pull requests will be pre-checked using travis to execute all these tests. You can see the results of travis test
-runs [here](https://travis-ci.org/approvals/ApprovalTests.Python/pull_requests).
+All pull requests will be pre-checked using GitHub actions to execute all these tests. You can see the [results of test
+runs here](https://github.com/approvals/ApprovalTests.Python/actions).

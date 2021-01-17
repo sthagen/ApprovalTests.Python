@@ -6,7 +6,7 @@
 5. options support
 6. check all uses of default reporter in tests
 7. make code more pythonic (method overloads vs default parameters)
-8. *** get the python reporter to work [not swallow output] with separate process launch
+8. DONE get the python reporter to work [not swallow output] with separate process launch
    (or not fire up in separate thread at all)
 9. DONE get the python reporter to work on windows
 10. change setup.py to pull in requirements.txt - and check requirements
@@ -18,6 +18,9 @@
 14. Agree on defaults: should be \n instead of os specific when writing, BOM on new file creation,
      the new file creation handles writing with correct encoding
 15. combination approvals needs line ending option
+16. add better pypi metadata https://pypi.org/project/tox/
+17. add checks to twine in github actions
+18. add tests to test the installed library - integration or system tests. For example, to confirm that JSON reporter files work. tox might help us.
 
   def test_mypy(self) -> None:
        try:
