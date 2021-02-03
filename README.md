@@ -1,11 +1,28 @@
 # ApprovalTests.Python
 
+
+<!-- toc -->
+## Contents
+
+  * [What can I use ApprovalTests for?](#what-can-i-use-approvaltests-for)
+  * [Setup](#setup)
+  * [Getting Started](#getting-started)
+    * [Overview](#overview)
+    * [Example using pytest](#example-using-pytest)
+    * [Example using unittest](#example-using-unittest)
+  * [Reporters](#reporters)
+    * [Selecting a Reporter](#selecting-a-reporter)
+    * [JSON file for collection of reporters](#json-file-for-collection-of-reporters)
+  * [Support and Documentation](#support-and-documentation)
+  * [For developers](#for-developers)<!-- endToc -->
+
 Capturing Human Intelligence - ApprovalTests is an open source assertion/verification library to aid testing.  
 `approvaltests` is the ApprovalTests port for Python.
 
 For more information see: [www.approvaltests.com](http://approvaltests.com/).
 
 Github Actions: [![Build Status](https://github.com/approvals/ApprovalTests.Python/workflows/Test/badge.svg?branch=master)](https://github.com/approvals/ApprovalTests.Python/actions)
+
 
 ## What can I use ApprovalTests for?
 
@@ -15,11 +32,13 @@ failure.  Sometimes, trying to find a small difference in a long string printed 
 ApprovalTests solves this problem by providing reporters which let you view the test results in one of many popular diff 
 utilities.
 
+
 ## Setup
 
 From [pypi](https://pypi.org/project/approvaltests/):
 
 	pip install approvaltests
+
 
 ## Getting Started
 
@@ -32,17 +51,21 @@ examine the differences.  Either you will update the master because you expected
 or you will go back to your code and update or roll back your changes to get your results back in line with the 
 golden master.
 
+
 ### Example using pytest
 
-```python
+<!-- snippet: getting_started_with_pytest.py -->
+<a id='snippet-getting_started_with_pytest.py'></a>
+```py
+from approvaltests.approvals import verify
 
-from approvaltests.approvals import verify    
 
 def test_simple():
-    result = "foobar"
+    result = "Hello ApprovalTests"
     verify(result)
-
 ```
+<sup><a href='/tests/examples/getting_started_with_pytest.py#L1-L6' title='Snippet source file'>snippet source</a> | <a href='#snippet-getting_started_with_pytest.py' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 Install the plugin pytest-approvaltests and use it to select a reporter:
 
@@ -53,30 +76,31 @@ The reporter is used both to alert you to changes in your test output, and to pr
 master. In this snippet, we chose the 'PythonNative' reporter when we ran the tests. For more information about selecting
 reporters see [the documentation](https://github.com/approvals/ApprovalTests.Python.PytestPlugin)
 
+
 ### Example using unittest
 
-```python
+<!-- snippet: getting_started_with_unittest.py -->
+<a id='snippet-getting_started_with_unittest.py'></a>
+```py
 import unittest
 
 from approvaltests.approvals import verify
-from approvaltests.reporters.generic_diff_reporter_factory import GenericDiffReporterFactory
-    
-    
+
+
 class GettingStartedTest(unittest.TestCase):
-    def setUp(self):
-        self.reporter = GenericDiffReporterFactory().get_first_working()
 
     def test_simple(self):
-        verify('Hello', self.reporter)
+        verify('Hello ApprovalTests')
 
 
 if __name__ == "__main__":
     unittest.main()
 ```
+<sup><a href='/tests/examples/getting_started_with_unittest.py#L1-L13' title='Snippet source file'>snippet source</a> | <a href='#snippet-getting_started_with_unittest.py' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
+This example has the same behaviour as the pytest version, but uses the built-in test framework `unittest` instead.
 
-This example is similar to the pytest version shown above, except we are selecting the reporter in the test code
- rather than at runtime.
 
 ## Reporters
 
