@@ -1,4 +1,5 @@
 from subprocess import call
+from typing import List
 
 from approvaltests.core.reporter import Reporter
 
@@ -17,7 +18,7 @@ class ReceivedFileLauncherReporter(Reporter):
     """
 
     @staticmethod
-    def get_command(approved_path, received_path):
+    def get_command(approved_path: str, received_path: str) -> List[str]:
         return ["cmd", "/C", "start", received_path, "/B"]
 
     def report(self, approved_path, received_path):
